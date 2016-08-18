@@ -33,6 +33,7 @@ class TFA:
 
     def compute_transcription_factor_activity(self, allow_self_interactions_for_duplicate_prior_columns = True):
         # Find TFs that have non-zero columns in the priors matrix
+        import pdb; pdb.set_trace()
         non_zero_tfs = self.prior.columns[(self.prior != 0).any(axis=0)].tolist()
 
         # Delete tfs that have neither prior information nor expression
