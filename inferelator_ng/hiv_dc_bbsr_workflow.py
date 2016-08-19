@@ -44,10 +44,7 @@ class Hiv_Dc_Bbsr_Workflow(WorkflowBase):
         """
         Compute common data structures like design and response matrices.
         """
-        common_genes = list(set.intersection(set(self.expression_matrix.index.tolist()), set(self.priors_data.index.tolist())))
-
-        self.priors_data = self.priors_data.loc[common_genes, self.tf_names]
-        self.expression_matrix = self.expression_matrix.loc[common_genes,]
+        self.filter_expression_and_priors()
         print 'Creating design and response matrix ... '
         drd = design_response_R.DRDriver()
         drd.delTmin = self.delTmin
@@ -59,6 +56,15 @@ class Hiv_Dc_Bbsr_Workflow(WorkflowBase):
         print 'Setting up TFA specific response matrix ... '
         drd.tau = self.tau / 2
         (self.design, self.half_tau_response) = drd.run(self.expression_matrix, self.meta_data)
+
+    def filter_expression_and_priors(self):
+        """
+        Guarantee that each row of the prior is in the expression and vice versa.
+        Also filter the priors to only includes columns, transcription factors, that are in the tf_names list
+        """
+        common_genes = list(set.intersection(set(self.expression_matrix.index.tolist()), set(self.priors_data.index.tolist())))
+        self.priors_data = self.priors_data.loc[common_genes, self.tf_names]
+        self.expression_matrix = self.expression_matrix.loc[common_genes,]
 
     def compute_activity(self):
         """
