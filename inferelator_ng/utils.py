@@ -29,11 +29,11 @@ def convert_to_R_df(df):
 def call_R(driver_path):
     """
     Run an "R" script in a subprocess.
-    Any outputs of the script should be saved to files.
+    Any outputs of the script, including stderr, should be saved to files.
     """
     if os.name == "posix":
         command = "R -f " + driver_path
-        return subprocess.check_output(command, shell=True)
+        return subprocess.check_output(command, shell=True, stderr=subprocess.STDOUT)
     else:
         theproc = subprocess.Popen(['R', '-f', driver_path])
         return theproc.communicate()

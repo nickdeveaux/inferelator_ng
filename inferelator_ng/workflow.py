@@ -40,8 +40,7 @@ class WorkflowBase(object):
         """
         Execute workflow, after all configuration.
         """
-        self.get_data()
-        self.compute_common_data()
+        raise NotImplementedError  # implement in subclass
 
     def get_data(self):
         """
@@ -52,7 +51,7 @@ class WorkflowBase(object):
         self.tf_names = utils.read_tf_names(tf_file)
         self.meta_data = self.input_dataframe(self.meta_data_file, has_index=False)
         self.priors_data = self.input_dataframe(self.priors_file)
-        # self.gold_standard = self.input_dataframe(self.gold_standard_file)
+        self.gold_standard = self.input_dataframe(self.gold_standard_file)
 
     def input_path(self, filename):
         return os.path.abspath(os.path.join(self.input_dir, filename))
@@ -75,9 +74,28 @@ class WorkflowBase(object):
 
     def compute_common_data(self):
         """
-        Compute common data structures like design, response and priors matrices.
+        Compute common data structures like design and response matrices.
         """
-        raise NotImplementedError  # implement in subclass
+        self.filter_expression_and_priors()
+        print('Creating design and response matrix ... ')
+        self.design_response_driver.delTmin = self.delTmin
+        self.design_response_driver.delTmax = self.delTmax
+        self.design_response_driver.tau = self.tau
+        (self.design, self.response) = self.design_response_driver.run(self.expression_matrix, self.meta_data)
+
+        # compute half_tau_response
+        print('Setting up TFA specific response matrix ... ')
+        self.design_response_driver.tau = self.tau / 2
+        (self.design, self.half_tau_response) = self.design_response_driver.run(self.expression_matrix, self.meta_data)
+
+    def filter_expression_and_priors(self):
+        """
+        Guarantee that each row of the prior is in the expression and vice versa.
+        Also filter the priors to only includes columns, transcription factors, that are in the tf_names list
+        """
+        common_genes = list(set.intersection(set(self.expression_matrix.index.tolist()), set(self.priors_data.index.tolist())))
+        self.priors_data = self.priors_data.loc[common_genes, self.tf_names]
+        self.expression_matrix = self.expression_matrix.loc[common_genes,]
 
     def get_bootstraps(self):
         """
