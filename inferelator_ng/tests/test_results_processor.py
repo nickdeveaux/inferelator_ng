@@ -7,27 +7,12 @@ class TestResultsProcessor(unittest.TestCase):
 
     def test_combining_confidences_one_beta(self):
         # rescaled betas are only in the 
-<<<<<<< HEAD
-        betas = pd.DataFrame(np.array([[1, 0], [1, 2]]), ['gene1', 'gene2'], ['tf1','tf2'])
-        rp = results_processor.ResultsProcessor([betas], [betas])
-=======
         beta = pd.DataFrame(np.array([[0.5, 0], [0.5, 1]]), ['gene1', 'gene2'], ['tf1','tf2'])
         rp = results_processor.ResultsProcessor([beta], [beta])
->>>>>>> 051784488e79b54b7585938f53dd592e691dcaa4
         confidences = rp.compute_combined_confidences()
         np.testing.assert_equal(confidences.values,
             np.array([[0.5,  0.0], [0.5,      1.0]]))
 
-<<<<<<< HEAD
-    def test_combining_confidences_two_betas(self):
-        # rescaled betas are only in the 
-        beta1 = pd.DataFrame(np.array([[1, 0], [1, 0]]), ['gene1', 'gene2'], ['tf1','tf2'])
-        beta2 = pd.DataFrame(np.array([[1, 0], [1, 2]]), ['gene1', 'gene2'], ['tf1','tf2'])
-        rp = results_processor.ResultsProcessor([beta1, beta2], [beta1, beta2])
-        confidences = rp.compute_combined_confidences()
-        np.testing.assert_equal(confidences.values,
-            np.array([[0.63636363636363635,0],[0.63636363636363635,0.54545454545454541]]))
-=======
     def test_combining_confidences_one_beta_invariant_to_rescale_division(self):
         # rescaled betas are only in the 
         beta = pd.DataFrame(np.array([[1, 0], [1, 2]]), ['gene1', 'gene2'], ['tf1','tf2'])
@@ -86,8 +71,6 @@ class TestResultsProcessor(unittest.TestCase):
         thresholded_mat = rp.threshold_and_summarize()
         np.testing.assert_equal(rp.betas_sign, np.array([[-1 ,1, 2, -1, 2]]))
 
->>>>>>> 051784488e79b54b7585938f53dd592e691dcaa4
-
     def test_threshold_and_summarize_one_beta(self):
         beta1 = pd.DataFrame(np.array([[1, 0], [0.5, 0]]), ['gene1', 'gene2'], ['tf1','tf2'])
         rp = results_processor.ResultsProcessor([beta1], [beta1])
@@ -121,8 +104,6 @@ class TestResultsProcessor(unittest.TestCase):
         np.testing.assert_equal(thresholded_mat.values,
             np.array([[1,0],[1,1]]))
 
-<<<<<<< HEAD
-=======
 ####################
 
 # TODO: Fix the following three tests so that they have unique and correct precision recall values
@@ -184,4 +165,3 @@ class TestResultsProcessor(unittest.TestCase):
         mean, median = rp.mean_and_median(rp.betas)
         np.testing.assert_equal(mean, np.array([[ 1.5,  1.5],[ 1.5,  1.5]]))
         np.testing.assert_equal(median, np.array([[ 1.5, 1.5],[ 1.5, 1.5]]))
->>>>>>> 051784488e79b54b7585938f53dd592e691dcaa4
