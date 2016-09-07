@@ -2,11 +2,8 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from . import condition
-<<<<<<< HEAD
-=======
 import os
 import csv
->>>>>>> 051784488e79b54b7585938f53dd592e691dcaa4
 
 class ResultsProcessor:
 
