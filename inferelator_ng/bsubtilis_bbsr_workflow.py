@@ -40,7 +40,7 @@ class Bsubtilis_Bbsr_Workflow(WorkflowBase):
             current_betas, current_rescaled_betas = self.regression_driver.run(X, Y, self.clr_matrix, self.priors_data)
             betas.append(current_betas)
             rescaled_betas.append(current_rescaled_betas)
-        self.emit_results(betas, rescaled_betas)
+        self.emit_results(betas, rescaled_betas, self.gold_standard, self.priors_data)
 
     def compute_activity(self):
         """
@@ -50,14 +50,11 @@ class Bsubtilis_Bbsr_Workflow(WorkflowBase):
         TFA_calculator = TFA(self.priors_data, self.design, self.half_tau_response)
         self.activity = TFA_calculator.compute_transcription_factor_activity()
 
-    def emit_results(self, betas, rescaled_betas):
+    def emit_results(self, betas, rescaled_betas, gold_standard, priors):
         """
         Output result report(s) for workflow run.
         """
         output_dir = os.path.join(self.input_dir, datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S'))
         os.makedirs(output_dir)
         self.results_processor = ResultsProcessor(betas, rescaled_betas)
-        combined_confidences = self.results_processor.compute_combined_confidences()
-        betas_stack = self.results_processor.threshold_and_summarize()
-        combined_confidences.to_csv(os.path.join(output_dir, 'combined_confidences.tsv'), sep = '\t')
-        betas_stack.to_csv(os.path.join(output_dir,'betas_stack.tsv'), sep = '\t')
+        self.results_processor.summarize_network(output_dir, gold_standard, priors)
