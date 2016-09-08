@@ -10,6 +10,8 @@ from tfa import TFA
 import mi_R
 import bbsr_R
 import datetime
+import random
+import pandas as pd
 
 class Hiv_Dc_Bbsr_Workflow(WorkflowBase):
 
@@ -22,64 +24,71 @@ class Hiv_Dc_Bbsr_Workflow(WorkflowBase):
         Execute workflow, after all configuration.
         """
         np.random.seed(self.random_seed)
+        random.seed(self.random_seed)
+        self.gold_standard = None
+        self.gold_standard_file = None
+        
         self.mi_clr_driver = mi_R.MIDriver()
-        self.brd = bbsr_R.BBSR_driver()
+        self.regression_driver = bbsr_R.BBSR_driver()
+        self.design_response_driver = design_response_R.DRDriver()
+
         self.get_data()
         self.compute_common_data()
         self.compute_activity()
-        self.results = []
+        betas = []
+        rescaled_betas = []
 
         for idx, bootstrap in enumerate(self.get_bootstraps()):
-            print 'Bootstrap {} of {}'.format(idx, self.num_bootstraps)
+            print('Bootstrap {} of {}'.format((idx + 1), self.num_bootstraps))
             X = self.activity.ix[:, bootstrap]
             Y = self.response.ix[:, bootstrap]
-            print 'Calculating MI, Background MI, and CLR Matrix'
+            print('Calculating MI, Background MI, and CLR Matrix')
             (self.clr_matrix, self.mi_matrix) = self.mi_clr_driver.run(X, Y)
-            print 'Calculating betas using BBSR'
-            (betas, resc) = self.brd.run(X, Y, self.clr_matrix, self.priors_data)
-            self.results.append((betas, resc))
-        self.emit_results()
+            print('Calculating betas using BBSR')
+            current_betas, current_rescaled_betas = self.regression_driver.run(X, Y, self.clr_matrix, self.priors_data)
+            betas.append(current_betas)
+            rescaled_betas.append(current_rescaled_betas)
+        self.emit_results(betas, rescaled_betas, self.gold_standard, self.priors_data)
 
-    def compute_common_data(self):
+    def compute_activity(self):
         """
-        Compute common data structures like design and response matrices.
+        Compute Transcription Factor Activity
         """
-        self.filter_expression_and_priors()
-        print 'Creating design and response matrix ... '
-        drd = design_response_R.DRDriver()
-        drd.delTmin = self.delTmin
-        drd.delTmax = self.delTmax
-        drd.tau = self.tau
-        (self.design, self.response) = drd.run(self.expression_matrix, self.meta_data)
-
-        # compute half_tau_response
-        print 'Setting up TFA specific response matrix ... '
-        drd.tau = self.tau / 2
-        (self.design, self.half_tau_response) = drd.run(self.expression_matrix, self.meta_data)
+        print('Computing Transcription Factor Activity using {} subsamples ... '.format(str(self.num_subsamples)))
+        bootstrapped_activities = []
+        number_of_nonzeros = np.count_nonzero(self.priors_data.values)
+        flat_nonzero_index = np.flatnonzero(self.priors_data.values)
+        print ('Of the {} non-zero indices, a fraction of {} will be randomly sampled'.format(str(number_of_nonzeros), str(self.frac_subsamples)))
+        for i in range(self.num_subsamples):
+            temp_prior = self.priors_data.copy()
+            sample = random.sample(xrange(number_of_nonzeros), int(float(number_of_nonzeros)*(1 - self.frac_subsamples)))
+            temp_prior.values[np.unravel_index(flat_nonzero_index[sample], self.priors_data.shape)] = 0
+            pseudoinverse = np.linalg.pinv(temp_prior)
+            TFA_calculator = TFA(temp_prior, self.design, self.half_tau_response)
+            bootstrapped_activities.append( TFA_calculator.compute_transcription_factor_activity())
+        stack = np.dstack([b.values for b in bootstrapped_activities])
+        median_activity = pd.DataFrame(np.median(stack, axis = 2), index=self.priors_data.columns, columns = self.expression_matrix.columns)
+        self.activity = median_activity
 
     def filter_expression_and_priors(self):
         """
         Guarantee that each row of the prior is in the expression and vice versa.
         Also filter the priors to only includes columns, transcription factors, that are in the tf_names list
         """
-        common_genes = list(set.intersection(set(self.expression_matrix.index.tolist()), set(self.priors_data.index.tolist())))
-        self.priors_data = self.priors_data.loc[common_genes, self.tf_names]
-        self.expression_matrix = self.expression_matrix.loc[common_genes,]
+        # filter the expression matrix so that at least one rld expression value per gene is greater than 0
+        filtered_xpn = self.expression_matrix[self.expression_matrix.max(axis=1) > 0]
+        targets = set.intersection(set(filtered_xpn.index.tolist()), set(self.priors_data.index.tolist()))
+        predictors = set.intersection(set(filtered_xpn.index.tolist()), set(self.priors_data.columns.tolist()))
+        self.expression_matrix = filtered_xpn.loc[targets, :]
+        self.priors_data = self.priors_data.loc[targets, predictors]
+        print('Filtering expression and priors down to {} tfs and {} targets ... '.format(str(len(predictors)), str(len(targets))))
 
-    def compute_activity(self):
-        """
-        Compute Transcription Factor Activity
-        """
-        print 'Computing Transcription Factor Activity ... '
-        TFA_calculator = TFA(self.priors_data, self.design, self.half_tau_response)
-        self.activity = TFA_calculator.compute_transcription_factor_activity()
-
-    def emit_results(self):
+    def emit_results(self, betas, rescaled_betas, gold_standard, priors):
         """
         Output result report(s) for workflow run.
         """
         output_dir = os.path.join(self.input_dir, datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S'))
         os.makedirs(output_dir)
-        for idx, result in enumerate(self.results):
-            result[0].to_csv(os.path.join(output_dir, 'betas_{}.tsv'.format(idx)), sep = '\t')
-            result[1].to_csv(os.path.join(output_dir,'resc_{}.tsv'.format(idx)), sep = '\t')
+        self.activity.to_csv(os.path.join(output_dir, 'median_activities.tsv'), sep = '\t')
+        self.results_processor = ResultsProcessor(betas, rescaled_betas)
+        self.results_processor.summarize_network(output_dir, gold_standard, priors)

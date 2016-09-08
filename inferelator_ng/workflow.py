@@ -51,7 +51,8 @@ class WorkflowBase(object):
         self.tf_names = utils.read_tf_names(tf_file)
         self.meta_data = self.input_dataframe(self.meta_data_file, has_index=False)
         self.priors_data = self.input_dataframe(self.priors_file)
-        self.gold_standard = self.input_dataframe(self.gold_standard_file)
+        if self.gold_standard_file:
+            self.gold_standard = self.input_dataframe(self.gold_standard_file)
 
     def input_path(self, filename):
         return os.path.abspath(os.path.join(self.input_dir, filename))
