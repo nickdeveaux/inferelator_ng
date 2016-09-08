@@ -2,7 +2,7 @@ from inferelator_ng.hiv_dc_bbsr_workflow import Hiv_Dc_Bbsr_Workflow
 
 workflow = Hiv_Dc_Bbsr_Workflow()
 # Common configuration parameters
-workflow.input_dir = '/Users/ndeveaux/Data/hiv_dc'
+workflow.input_dir = 'data/hiv_dc'
 workflow.priors_file = 'combined_priors.tsv'
 workflow.expression_matrix_file = 'batch_corrected_expression.tsv'
 workflow.num_bootstraps = 2

@@ -73,7 +73,7 @@ class Hiv_Dc_Bbsr_Workflow(WorkflowBase):
     def filter_expression_and_priors(self):
         """
         Guarantee that each row of the prior is in the expression and vice versa.
-        Also filter the priors to only includes columns, transcription factors, that are in the tf_names list
+        Also filter the priors to only includes columns, transcription factors and targets that meet filter criteria.
         """
         # filter the expression matrix so that at least one rld expression value per gene is greater than 0
         filtered_xpn = self.expression_matrix[self.expression_matrix.max(axis=1) > 0]
