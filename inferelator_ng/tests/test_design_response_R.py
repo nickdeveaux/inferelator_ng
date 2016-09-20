@@ -74,6 +74,8 @@ class TestDRAboveDeltMax(TestDR):
         self.assertEqual(list(resp.columns), ['ts4', 'ss', 'ts1', 'ts2'])
         self.assertEqual(list(resp['ts4']), list(self.exp['ts4']))
         self.assertEqual(list(resp['ss']), list(self.exp['ss']))
+        self.assertEqual(resp.shape, (2, 4))
+
 
     def test_response_matrix_time_series_above_delt_max(self):
         ds, resp = (self.design, self.response)
@@ -108,9 +110,15 @@ class TestDRBelowDeltMin(TestDR):
     def test_response_matrix_below_delt_min(self):
         ds, resp = (self.design, self.response)
         expression_1 = np.array(list(self.exp['ts1']))
+        expression_2 = np.array(list(self.exp['ts2']))
         expression_3 = np.array(list(self.exp['ts3']))
+        expression_4 = np.array(list(self.exp['ts4']))
         expected_response_1 = expression_1 + self.tau * (expression_3 - expression_1) /  (float(self.meta['del.t'][1]) + float(self.meta['del.t'][2]))
         np.testing.assert_almost_equal(np.array(resp['ts1']), expected_response_1)
+        expected_response_2 = expression_2 + self.tau * (expression_3 - expression_2) /  (float(self.meta['del.t'][2]))
+        np.testing.assert_almost_equal(np.array(resp['ts2']), expected_response_2)
+        expected_response_3 = expression_3 + self.tau * (expression_4 - expression_3) /  (float(self.meta['del.t'][3]))
+        np.testing.assert_almost_equal(np.array(resp['ts3']), expected_response_3)
 
     @unittest.skip("skipping until we've determined if we want to modify the legacy R code")
     def test_design_matrix_headers_below_delt_min(self):
@@ -118,6 +126,67 @@ class TestDRBelowDeltMin(TestDR):
         print(ds.columns)
         self.assertEqual(list(ds.columns), ['ss', 'ts1', 'ts2', 'ts3'], 
             msg = "Guarantee that the ts4 condition is dropped, since its the last in the time series")
+
+class TestDRBelowDeltMinAboveDeltMax(TestDR):
+
+    def setUp(self):
+        self.meta = pd.DataFrame()
+        self.meta['isTs']=[True, True, True]
+        self.meta['is1stLast'] = ['f','m','l']
+        self.meta['prevCol'] = ['NA','ts1','ts2']
+        self.meta['del.t'] = ['NA', 3, 3]
+        self.meta['condName'] = ['ts1', 'ts2', 'ts3']
+        self.exp = pd.DataFrame(np.reshape(range(9), (3,3)) + 1,
+            index = ['gene' + str(i + 1) for i in range(3)],
+            columns = ['ts' + str(i + 1) for i in range(3)])
+        self.delT_min = 4
+        self.delT_max = 5
+        self.tau = 2
+        self.calculate_design_and_response()
+
+    def test_response_matrix_below_delt_min(self):
+        ds, resp = (self.design, self.response)
+        expression_1 = np.array(list(self.exp['ts1']))
+        expression_2 = np.array(list(self.exp['ts2']))
+        expression_3 = np.array(list(self.exp['ts3']))
+        expected_response_1 = expression_1 + self.tau * (expression_3 - expression_1) /  (float(self.meta['del.t'][1]) + float(self.meta['del.t'][2]))
+        np.testing.assert_almost_equal(np.array(resp['ts1']), expected_response_1)
+        self.assertEqual(resp.shape, (3, 1))
+
+class TestDREmptyInMiddle(TestDR):
+
+    def setUp(self):
+        self.meta = pd.DataFrame()
+        self.meta['isTs']=[True, True, True, True, True]
+        self.meta['is1stLast'] = ['f','m','m','m','l']
+        self.meta['prevCol'] = ['NA','ts1','ts2','ts3', 'ts4']
+        self.meta['del.t'] = ['NA', 1, 1, 1, 4]
+        self.meta['condName'] = ['ts1', 'ts2', 'ts3', 'ts4', 'ts5']
+        self.exp = pd.DataFrame(
+            np.reshape(range(10), (2, 5)) + 1,
+            index=['gene' + str(i + 1) for i in range(2)],
+            columns=['ts' + str(i + 1) for i in range(5)])
+        self.delT_min = 4
+        self.delT_max = 6
+        self.tau = 2
+        self.calculate_design_and_response()
+
+    def test_response_matrix_with_all_middle_columns_below_delt_min(self):
+        ds, resp = (self.design, self.response)
+        expression_1 = np.array(list(self.exp['ts1']))
+        expression_2 = np.array(list(self.exp['ts2']))
+        expression_3 = np.array(list(self.exp['ts3']))
+        expression_4 = np.array(list(self.exp['ts4']))
+        expression_5 = np.array(list(self.exp['ts5']))
+        self.assertEqual(resp.shape, (2, 4))
+        expected_response_1 = expression_1 + self.tau * (expression_5 - expression_1) /  float(sum(self.meta['del.t'][1:5]))
+        np.testing.assert_almost_equal(np.array(resp['ts1']), expected_response_1)
+        expected_response_2 = expression_2 + self.tau * (expression_5 - expression_2) /  float(sum(self.meta['del.t'][2:5]))
+        np.testing.assert_almost_equal(np.array(resp['ts2']), expected_response_2)
+        expected_response_3 = expression_3 + self.tau * (expression_5 - expression_3) /  float(sum(self.meta['del.t'][3:5]))
+        np.testing.assert_almost_equal(np.array(resp['ts3']), expected_response_3)
+        expected_response_4 = expression_4 + self.tau * (expression_5 - expression_4) /  float(sum(self.meta['del.t'][4:5]))
+        np.testing.assert_almost_equal(np.array(resp['ts4']), expected_response_4)
 
 class TestBranchingTimeSeries(TestDR):
 
