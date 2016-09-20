@@ -144,7 +144,7 @@ class TestDRBelowDeltMinAboveDeltMax(TestDR):
         self.tau = 2
         self.calculate_design_and_response()
 
-    def test_response_matrix_below_delt_min(self):
+    def test_response_matrix_single_step_below_delt_min_two_steps_above_deltmax(self):
         ds, resp = (self.design, self.response)
         expression_1 = np.array(list(self.exp['ts1']))
         expression_2 = np.array(list(self.exp['ts2']))
