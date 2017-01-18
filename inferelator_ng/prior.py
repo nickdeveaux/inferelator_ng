@@ -99,5 +99,5 @@ class Prior:
                 if regulator in self.regulators and target in self.targets:
                     #weight = pybedtools.BedTool(edges[regulator][target]).merge().count()
                     weight = len(edges[regulator][target])
-                    prior.ix[target, regulator] = weight
+                    prior.set_value(target, regulator, weight)
         return prior
