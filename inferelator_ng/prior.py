@@ -18,11 +18,12 @@ class Prior:
                        motifs can only be assigned to target gene if upstream (true in yeast, for example)
     number_of_targets: valid for closest mode only; 
                        allow a motif to regulate 'number_of_targets' closest genes
+    single_tf: for creating chipseq priors, pass in a single tf that overrides the names of all the peaks
     """
 
     def __init__(self, motifs_file, genes_file, targets, regulators,
                  mode = 'closest', max_distance = 100000,
-                 ignore_downstream = False, number_of_targets = 1):
+                 ignore_downstream = False, number_of_targets = 1, single_tf=False):
 
         self.genes = genes_file
         self.motifs = motifs_file
@@ -32,6 +33,7 @@ class Prior:
         self.max_distance = max_distance
         self.number_of_targets = number_of_targets
         self.ignore_downstream = ignore_downstream
+        self.single_tf = single_tf
 
     def make_prior(self):
 
@@ -78,6 +80,9 @@ class Prior:
             regulator = assignment[motif_start+3]
             target = assignment[target_idx]
 
+            if self.single_tf:
+                regulator = self.regulators[0]
+
             if regulator in edges:
                 if target in edges[regulator]:
                     edges[regulator][target].append(motif)
@@ -96,4 +101,3 @@ class Prior:
                     weight = len(edges[regulator][target])
                     prior.ix[target, regulator] = weight
         return prior
-
