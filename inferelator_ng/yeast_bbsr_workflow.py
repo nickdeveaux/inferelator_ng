@@ -41,7 +41,7 @@ class Yeast_Bbsr_Workflow(WorkflowBase):
             current_betas, current_rescaled_betas = self.regression_driver.run(X, Y, self.clr_matrix, self.priors_data)
             betas.append(current_betas)
             rescaled_betas.append(current_rescaled_betas)
-        self.emit_results(betas, rescaled_betas, self.gold_standard, self.priors_data)
+        return self.emit_results(betas, rescaled_betas, self.gold_standard, self.priors_data)
 
     def filter_expression_and_priors(self):
         """
@@ -69,5 +69,5 @@ class Yeast_Bbsr_Workflow(WorkflowBase):
         output_dir = os.path.join(self.input_dir, datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S'))
         os.makedirs(output_dir)
         self.results_processor = ResultsProcessor(betas, rescaled_betas)
-        self.results_processor.summarize_network(output_dir, abs(gold_standard), priors)
+        return self.results_processor.summarize_network(output_dir, abs(gold_standard), priors)
 
