@@ -18,5 +18,5 @@ class TestEndToEnd(unittest.TestCase):
         workflow.delTmin = 0
         workflow.tau = 45
         aupr_result = workflow.run()
-        print aupr_result
+        print(aupr_result)
         self.assertTrue(aupr_result > 0.59)
