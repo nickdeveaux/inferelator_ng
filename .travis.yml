@@ -55,6 +55,8 @@ install:
   - pip install -r requirements.txt
   # install R components
   - sudo R -f inferelator_ng/R_code/packages.R
+  # download large data file
+  - wget https://www.dropbox.com/s/dhj4amz0wcfdn58/expression.tsv -P ./data/yeast
 script:
   - python -c "import os; print(repr(os.name))"
   - python -c "import matplotlib.pyplot as plt; print('imported '+plt.__file__)"
