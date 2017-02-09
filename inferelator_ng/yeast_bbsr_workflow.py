@@ -5,7 +5,7 @@ Run Yeast Network Inference with TFA BBSR.
 import numpy as np
 import pandas as pd
 import os
-from workflow import WorkflowBase
+from inferelator_ng.workflow import WorkflowBase
 import design_response_R
 from tfa import TFA
 from results_processor import ResultsProcessor
