@@ -13,7 +13,7 @@ class TestEndToEnd(unittest.TestCase):
         workflow = Yeast_Bbsr_Workflow()
         # Common configuration parameters
         workflow.input_dir = 'data/yeast'
-        workflow.num_bootstraps = 2
+        workflow.num_bootstraps = 1
         workflow.delTmax = 110
         workflow.delTmin = 0
         workflow.tau = 45
