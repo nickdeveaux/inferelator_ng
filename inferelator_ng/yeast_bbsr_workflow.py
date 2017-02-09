@@ -6,11 +6,11 @@ import numpy as np
 import pandas as pd
 import os
 from inferelator_ng.workflow import WorkflowBase
-import design_response_R
-from tfa import TFA
-from results_processor import ResultsProcessor
-import mi_R
-import bbsr_R
+from . import design_response_R
+from inferelator_ng.tfa import TFA
+from inferelator_ng.results_processor import ResultsProcessor
+from . import mi_R
+from . import bbsr_R
 import datetime
 
 class Yeast_Bbsr_Workflow(WorkflowBase):
