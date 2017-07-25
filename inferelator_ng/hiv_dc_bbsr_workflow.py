@@ -12,6 +12,7 @@ import bbsr_R
 import datetime
 import random
 import pandas as pd
+from results_processor import ResultsProcessor
 
 class Hiv_Dc_Bbsr_Workflow(WorkflowBase):
 

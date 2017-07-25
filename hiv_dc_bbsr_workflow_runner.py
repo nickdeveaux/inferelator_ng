@@ -5,11 +5,11 @@ workflow = Hiv_Dc_Bbsr_Workflow()
 workflow.input_dir = 'data/hiv_dc'
 workflow.priors_file = 'combined_priors.tsv'
 workflow.expression_matrix_file = 'batch_corrected_expression.tsv'
-workflow.num_bootstraps = 2
+workflow.num_bootstraps = 20
 workflow.delTmax = 110
 workflow.delTmin = 0
 workflow.tau = 45
 workflow.random_seed = 999
-workflow.num_subsamples = 4
+workflow.num_subsamples = 100
 workflow.frac_subsamples = 0.66
 workflow.run() 
