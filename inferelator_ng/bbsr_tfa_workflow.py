@@ -22,40 +22,59 @@ class BBSR_TFA_Workflow(WorkflowBase):
         division = len(lst) / float(n)
         return [ lst[int(round(division * i)): int(round(division * (i + 1)))] for i in xrange(n) ]
 
+    def split_time_series_into_blocks(self):
+        blocks = {}
+        blocks['steady_state'] = []
+        for idx, row in self.meta_data.iterrows():
+            if row['isTs'] == 'TRUE':
+                if row['is1stLast'] == 'f':
+                    key = row['condName']
+                    blocks[key] = [row['condName']]
+                elif row['is1stLast'] != 'l': 
+                    blocks[key].append(row['condName'])
+            else:
+                blocks['steady_state'].append(row['condName'])
+        return blocks
+
     def run(self):
         """
         Execute workflow, after all configuration.
         """
         np.random.seed(self.random_seed)
-        self.num_folds = 10
         self.mi_clr_driver = mi_R.MIDriver()
         self.regression_driver = bbsr_R.BBSR_driver()
         self.design_response_driver = design_response_R.DRDriver()
 
         self.get_data()
         
-        # store total data sets (without hold outs) in "archived" data frames
-        self.archived_expression_matrix = self.expression_matrix
-        self.archived_meta_data = self.meta_data
         self.compute_common_data()
-        self.archived_activity = self.compute_activity()
+        self.archived_design = self.design
+        self.archived_response = self.response
+        self.archived_half_tau_response = self.half_tau_response 
+        full_activity = self.compute_activity()
 
-        # Set up a K-fold partition of the samples, i.e. the expression columns
+        blocks = self.split_time_series_into_blocks()
+        steady_state_indices = blocks.pop('steady_state')
+        self.num_folds = len(blocks)
+
+        # Set up a K-fold partition of the steady-state samples, i.e. the expression columns
+        random.shuffle(steady_state_indices)
+        partitioned_fold_indices = self.partition(steady_state_indices, self.num_folds)
+
         total_test_error = {}
         total_train_error = {}
-        fold_indices = self.expression_matrix.columns.tolist()
-        random.shuffle(fold_indices)
-        partitioned_fold_indices = self.partition(fold_indices, self.num_folds)\
 
         for fold in range(self.num_folds):
-            excluded_samples = partitioned_fold_indices[fold]
-            self.expression_matrix = stat_utils.filter_out(self.archived_expression_matrix, excluded_samples)
-            self.meta_data = self.archived_meta_data.loc[~self.archived_meta_data.condName.isin(excluded_samples) , :]
-            self.compute_common_data()
+            excluded_samples = partitioned_fold_indices[fold] + blocks[blocks.keys()[fold]]
+            self.design = stat_utils.filter_out(self.archived_design, excluded_samples)
+            self.response = stat_utils.filter_out(self.archived_response, excluded_samples)
+            self.half_tau_response  = stat_utils.filter_out(self.archived_half_tau_response, excluded_samples)
+            # Calculate activity in each fold, due to different normalization with held-out samples
             self.activity = self.compute_activity()
 
             betas = []
             rescaled_betas = []
+            print 'fold: {}'.format(fold)
     
             for idx, bootstrap in enumerate(self.get_bootstraps()):
                 print('Bootstrap {} of {}'.format((idx + 1), self.num_bootstraps))
@@ -68,12 +87,10 @@ class BBSR_TFA_Workflow(WorkflowBase):
                 betas.append(current_betas)
                 rescaled_betas.append(current_rescaled_betas)
             thresholded_matrix = ResultsProcessor(betas, rescaled_betas).threshold_and_summarize()
-            held_out_data = self.archived_expression_matrix[excluded_samples]
-            held_out_meta_data = self.archived_meta_data.loc[self.archived_meta_data.condName.isin(excluded_samples) , :]
-            (self.design, held_out_response) = self.design_response_driver.run(held_out_data, held_out_meta_data)
-            (self.design, self.half_tau_response) = self.design_response_driver.run(held_out_data, held_out_meta_data)
-            held_out_activity = self.compute_activity()
-            (train_error, test_error) = self.compute_error_unnormalized_y(self.activity, self.response, thresholded_matrix, \
+            held_out_activity = full_activity.loc[:, excluded_samples]
+            held_out_response = self.archived_response.loc[:, excluded_samples]
+            # Or use compute_error
+            (train_error, test_error) = self.compute_error(self.activity, self.response, thresholded_matrix, \
                                              held_out_activity, held_out_response)
 
             total_test_error[fold] = test_error
