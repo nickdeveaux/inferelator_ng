@@ -147,8 +147,23 @@ class BBSR_TFA_Workflow(WorkflowBase):
         We will normalize the testdata and the testactivity with the mean and std of the train, as described in
         https://stats.stackexchange.com/questions/174823/how-to-apply-standardization-normalization-to-train-and-testset-if-prediction-i
         """
+
+        # 8/18/17: try to debug NAs
+        def drop_nas(df):
+            prev_shape = df.shape
+            new_df = df.dropna(axis=1, how='all')
+            if prev_shape != new_df.shape:
+                import pdb; pdb.set_trace()
+            return new_df
+
         test_error = {}
         train_error = {}
+
+        held_out_X = drop_nas(held_out_X)
+        held_out_Y = drop_nas(held_out_Y)
+
+        X = drop_nas(X)
+        Y = drop_nas(Y)
 
         (X_mu, X_sigma_squared) = stat_utils.compute_stats(X)
         X_normalized = stat_utils.normalize(X, X_mu, X_sigma_squared)
