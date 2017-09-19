@@ -27,7 +27,6 @@ def compute_error(X, Y, thresholded_matrix, held_out_X, held_out_Y):
             import pdb; pdb.set_trace()
         return new_df
 
-    import pdb; pdb.set_trace()
     test_error = {'counts':{}}
     train_error = {'counts':{}}
 
@@ -44,7 +43,7 @@ def compute_error(X, Y, thresholded_matrix, held_out_X, held_out_Y):
 
     held_out_Y_normalized = normalize(held_out_Y, Y_mu, Y_sigma_squared)
     held_out_X_normalized = normalize(held_out_X, X_mu, X_sigma_squared)
-    ols = LinearRegression(normalize=False, fit_intercept=True)
+    ols = LinearRegression(normalize=False, fit_intercept=False)
     for gene_name, y_normalized in Y_normalized.iterrows():
         nonzero  = thresholded_matrix.loc[gene_name,:].nonzero()[0]
         #only compute betas if there was found to be a predictive TF for this target gene
