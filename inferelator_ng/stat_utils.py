@@ -5,8 +5,8 @@ import matplotlib.pyplot as plt
 def compute_stats(dataframe):
     return (dataframe.mean(axis=1), dataframe.var(axis=1))
 
-def normalize(df, mu, sigma_squared):
-    return df.sub(mu, axis=0).div(np.sqrt(sigma_squared), axis = 0)
+def normalize(df, mean, sigma_squared):
+    return df.sub(mean, axis=0).div(np.sqrt(sigma_squared), axis = 0)
 
 def filter_out(df, filter_list):
     return df[df.columns.difference(filter_list)]
@@ -27,6 +27,7 @@ def compute_error(X, Y, thresholded_matrix, held_out_X, held_out_Y):
             import pdb; pdb.set_trace()
         return new_df
 
+    import pdb; pdb.set_trace()
     test_error = {'counts':{}}
     train_error = {'counts':{}}
 
@@ -47,7 +48,7 @@ def compute_error(X, Y, thresholded_matrix, held_out_X, held_out_Y):
     for gene_name, y_normalized in Y_normalized.iterrows():
         nonzero  = thresholded_matrix.loc[gene_name,:].nonzero()[0]
         #only compute betas if there was found to be a predictive TF for this target gene
-        if len(nonzero) > 1:
+        if len(nonzero) > 0:
             nonzero_X_normalized = X_normalized.iloc[nonzero,:].transpose()
             n = len(y_normalized)
             if n < 1:
