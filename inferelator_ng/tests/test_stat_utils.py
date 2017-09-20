@@ -86,8 +86,6 @@ class TestStatUtils(unittest.TestCase):
             held_out_Y = pd.DataFrame(Y_for_fold.pop(i))
             (train, test) = stat_utils.compute_error(X_for_fold, Y_for_fold, thresholded_matrix, held_out_X, held_out_Y)
             
-            print train
-            print test
             # The sample S2&S3 have a higher training error than test error (by orders of magnitude)
             if i == 'S2':
                 expected_train_error = {'G1': 1.2558139534883712, 'G0': 1.928571428571429}
