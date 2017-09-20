@@ -66,7 +66,7 @@ class TestStatUtils(unittest.TestCase):
         np.testing.assert_allclose(expected_test_error['G1'], test['G1'])
 
 
-       # testing an example held-out error calculation with a single predictor
+    # testing 100 random X held-out error calculation with a single predictor
     def test_compute_error_single_predictor_from_activity_every_fold(self):
         sample_names = ['S0', 'S1', 'S2', 'S3']
         gene_names = ['G0', 'G1']
@@ -108,14 +108,14 @@ class TestStatUtils(unittest.TestCase):
                 self.assertTrue(train['G0'] < test['G0'])
 
 
-       # testing an example held-out error calculation with a single predictor
-    def test_single_predictor_test_error_vs_train_every_fold(self):
+    # testing 100 random Y held-out error calculation with a single predictor
+    def single_predictor_test_error_vs_train_every_fold(self):
         sample_names = ['S0', 'S1', 'S2', 'S3']
         gene_names = ['G0', 'G1']
         tf_names = ['TF0']
         Y = pd.DataFrame(np.array([[1, 7, 2, 3],[8, 2, 0, 1]]), index=gene_names, columns = sample_names)
         thresholded_matrix = pd.DataFrame(np.array([[1], [1]]), index=gene_names)
-        for _ in range(100):
+        for _ in range(10):
             X = pd.DataFrame(np.matrix(np.array(np.random.choice(range(10), size=4, replace = False)).transpose()), index=tf_names, columns = sample_names)
             MSE = {}
             MSE['train'] = {}
@@ -124,26 +124,49 @@ class TestStatUtils(unittest.TestCase):
                 MSE['train'][g] = 0
                 MSE['test'][g] = 0
             for i in sample_names:
-                print 'Fold : {} removed'.format(i)
                 X_for_fold = copy.deepcopy(X)
                 Y_for_fold = copy.deepcopy(Y)
                 held_out_X = pd.DataFrame(X_for_fold.pop(i))
-                print X_for_fold
                 held_out_Y = pd.DataFrame(Y_for_fold.pop(i))
                 (train, test) = stat_utils.compute_error(X_for_fold, Y_for_fold, thresholded_matrix, held_out_X, held_out_Y)
                 for g in gene_names:
                     MSE['train'][g] = MSE['train'][g] + train[g] / float(train['counts'][g])
                     MSE['test'][g] = MSE['test'][g] + test[g] / float(test['counts'][g])
-                print 'train: {}'.format(train)
-                print 'test: {}'.format(test)
-                # The sample S2&S3 have a higher training error than test error (by orders of magnitude)
-                if (train['G1'] > test['G1']):
-                    print 'G1 test error under train'
-                if (train['G0'] > test['G0']):
-                    print 'G0 test error under train'
             for g in gene_names:
                 for t in ['test', 'train']:
                     MSE[t][g] = MSE[t][g] / float(len(sample_names))
                 self.assertTrue(MSE['train'][g] < MSE['test'][g])
-                print 'MSE train {}, MSE test {}'.format(MSE['train'][g], MSE['test'][g])
+
+       # testing an example held-out error calculation with a single predictor
+    def test_single_predictor_test_error_vs_train_every_fold_with_activitie(self):
+        sample_names = ['S0', 'S1', 'S2', 'S3']
+        gene_names = ['G0', 'G1']
+        tf_names = ['TF0']
+        P = pd.DataFrame(np.array([[1], [1]]), index=gene_names, columns=tf_names)
+        for _ in range(10):
+            Y = pd.DataFrame([np.array(np.random.choice(range(10), size=4, replace = False)).transpose(),
+                    np.array(np.random.choice(range(10), size=4, replace = False)).transpose()], index=gene_names, columns = sample_names)
+            thresholded_matrix = pd.DataFrame(np.array([[1], [1]]), index=gene_names)
+            activities = np.matrix(linalg.pinv2(P)) * np.matrix(Y)
+            X = pd.DataFrame(activities, index=tf_names, columns = sample_names)
+            MSE = {}
+            MSE['train'] = {}
+            MSE['test'] = {}
+            for g in gene_names:
+                MSE['train'][g] = 0
+                MSE['test'][g] = 0
+            for i in sample_names:
+                X_for_fold = copy.deepcopy(X)
+                Y_for_fold = copy.deepcopy(Y)
+                held_out_X = pd.DataFrame(X_for_fold.pop(i))
+                held_out_Y = pd.DataFrame(Y_for_fold.pop(i))
+                (train, test) = stat_utils.compute_error(X_for_fold, Y_for_fold, thresholded_matrix, held_out_X, held_out_Y)
+                for g in gene_names:
+                    MSE['train'][g] = MSE['train'][g] + train[g] / float(train['counts'][g])
+                    MSE['test'][g] = MSE['test'][g] + test[g] / float(test['counts'][g])
+            for g in gene_names:
+                for t in ['test', 'train']:
+                    MSE[t][g] = MSE[t][g] / float(len(sample_names))
+                self.assertTrue(MSE['train'][g] < MSE['test'][g])
+            
             
