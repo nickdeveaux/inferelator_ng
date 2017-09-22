@@ -25,7 +25,7 @@ class BBSR_TFA_CV_Workflow(WorkflowBase):
         blocks = {}
         blocks['steady_state'] = []
         for idx, row in self.meta_data.iterrows():
-            if row['isTs'] == 'TRUE':
+            if row['isTs'] == True:
                 if row['is1stLast'] == 'f':
                     key = row['condName']
                     blocks[key] = [row['condName']]
@@ -51,7 +51,6 @@ class BBSR_TFA_CV_Workflow(WorkflowBase):
         self.archived_response = self.response
         self.archived_half_tau_response = self.half_tau_response 
         full_activity = self.compute_activity()
-
         blocks = self.split_time_series_into_blocks()
         steady_state_indices = blocks.pop('steady_state')
         self.num_folds = len(blocks)
