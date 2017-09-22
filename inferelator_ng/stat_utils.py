@@ -23,8 +23,6 @@ def compute_error(X, Y, thresholded_matrix, held_out_X, held_out_Y):
     def drop_nas(df):
         prev_shape = df.shape
         new_df = df.dropna(axis=1, how='all')
-        if prev_shape != new_df.shape:
-            import pdb; pdb.set_trace()
         return new_df
 
     test_error = {'counts':{}}
