@@ -96,30 +96,28 @@ class BBSR_TFA_CV_Workflow(WorkflowBase):
             total_train_error[fold] = train_error
 
         # boxplot of each gene
-        import pdb; pdb.set_trace() 
+        MSE['train'] = {}
+        MSE['test'] = {}
         for gene in total_test_error[0].keys():
-            test_error = [total_test_error[i][gene] for i in range(self.num_folds) if gene in total_test_error[i].keys()]
-            train_error = [total_train_error[i][gene] for i in range(self.num_folds) if gene in total_train_error[i].keys()]
-            fig = plt.figure(1, figsize=(10, 8))
-            plt.boxplot([train_error, test_error])
-            plt.ylabel('Mean Squared Error (SSE/N)')
-            plt.xticks([1, 2], ['train error', 'test error'])
-            plt.title('{}-fold validation ters'.format(self.num_folds))
-            plt.savefig('{}.png'.format(gene))
-            fig.clear()
-            plt.close()
-        flat_list_test_error = []
-        for k in total_test_error.keys():
-            for z in total_test_error[k]:
-                total_test_error[k]
-        flat_list_test_error = [total_test_error[k][gene] for k in total_test_error.keys() for gene in total_test_error[k]]
-        flat_list_train_error = [total_train_error[k][gene] for k in total_train_error.keys() for gene in total_train_error[k]]
-        fig = plt.figure(1, figsize=(10, 8))
-        plt.boxplot([flat_list_train_error, flat_list_test_error])
-        plt.ylabel('Mean Squared Error (SSE/N)')
-        plt.xticks([1, 2], ['train error', 'test error'])
-        plt.title('{}-fold validation ters'.format(self.num_folds))
-        plt.savefig('{}.png'.format('All_Genes'))
+            MSE['train'][gene] = 0
+            MSE['test'][gene] = 0
+            for i in range(self.num_folds):
+                MSE['train'][gene] = MSE['train'][gene] + total_train_error[i][gene] / float(total_train_error[i]['counts'][gene])
+                MSE['test'][gene] = MSE['test'][gene] + total_test_error[i][gene] / float(total_test_error[i]['counts'][gene])
+            # fig = plt.figure(1, figsize=(10, 8))
+            # plt.boxplot([train_error, test_error])
+            # plt.ylabel('Mean Squared Error (SSE/N)')
+            # plt.xticks([1, 2], ['train error', 'test error'])
+            # plt.title('{}-fold validation ters'.format(self.num_folds))
+            # plt.savefig('{}.png'.format(gene))
+            # fig.clear()
+            # plt.close()
+        import pdb; pdb.set_trace()
+        for gene in total_test_error[0].keys():
+            if MSE['test'][gene] > MSE['train'][gene]:
+                print ' test error higher than train for gene {}'.format(gene)
+                import pdb; pdb.set_trace()
+
         
 
     def compute_activity(self):

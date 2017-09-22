@@ -50,21 +50,14 @@ def compute_error(X, Y, thresholded_matrix, held_out_X, held_out_Y):
         if len(nonzero) > 0:
             nonzero_X_normalized = X_normalized.iloc[nonzero,:].transpose()
             n = len(y_normalized)
-            if n < 1:
-                # TODO: remove these debugger lines
-                import pdb; pdb.set_trace()
-            if nonzero_X_normalized.shape[1] < 1:
-                import pdb; pdb.set_trace()
             fitted = ols.fit(nonzero_X_normalized, y_normalized)
             train_error[gene_name] = np.sum((ols.predict(nonzero_X_normalized) - y_normalized) ** 2) 
             train_error['counts'][gene_name] = n
-            plot_tf(gene_name, nonzero_X_normalized, y_normalized, ols.predict(nonzero_X_normalized), nonzero_X_normalized.columns)
             # fig = sm.graphics.plot_regress_exog(ols, tf, fig=fig)
             held_out_nonzero_X_normalized = held_out_X_normalized.iloc[nonzero,:].transpose()
             n = len(held_out_Y_normalized.loc[gene_name,:])
             test_error[gene_name] = np.sum((ols.predict(held_out_nonzero_X_normalized) - held_out_Y_normalized.loc[gene_name,:]) ** 2) 
             test_error['counts'][gene_name] = n
-            plot_tf(gene_name, held_out_nonzero_X_normalized, held_out_Y_normalized.loc[gene_name,:], ols.predict(held_out_nonzero_X_normalized), nonzero_X_normalized.columns, plot_type='test')
     return (train_error, test_error)
 
 def plot_tf(gene, x, y, fittedvalues, tfs, plot_type = 'train'):
