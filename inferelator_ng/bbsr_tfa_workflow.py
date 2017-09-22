@@ -95,6 +95,7 @@ class BBSR_TFA_CV_Workflow(WorkflowBase):
             total_train_error[fold] = train_error
 
         # boxplot of each gene
+        MSE = {}
         MSE['train'] = {}
         MSE['test'] = {}
         for gene in total_test_error[0].keys():
