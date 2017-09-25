@@ -98,7 +98,7 @@ class BBSR_TFA_CV_Workflow(WorkflowBase):
         MSE = {}
         MSE['train'] = {}
         MSE['test'] = {}
-        for gene in total_test_error[0].keys():
+        for gene in total_test_error[0]['counts'].keys():
             MSE['train'][gene] = 0
             MSE['test'][gene] = 0
             for i in range(self.num_folds):
