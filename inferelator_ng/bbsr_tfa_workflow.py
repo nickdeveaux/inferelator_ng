@@ -61,7 +61,6 @@ class BBSR_TFA_CV_Workflow(WorkflowBase):
 
         total_test_error = {}
         total_train_error = {}
-
         for fold in range(self.num_folds):
             excluded_samples = partitioned_fold_indices[fold] + blocks[blocks.keys()[fold]]
             self.design = stat_utils.filter_out(self.archived_design, excluded_samples)
@@ -93,11 +92,15 @@ class BBSR_TFA_CV_Workflow(WorkflowBase):
 
             total_test_error[fold] = test_error
             total_train_error[fold] = train_error
+            if len(train_error.keys()) != 4219:
+                import pdb; pdb.set_trace()
+
 
         # boxplot of each gene
         MSE = {}
         MSE['train'] = {}
         MSE['test'] = {}
+        import pdb; pdb.set_trace()
         for gene in total_test_error[0]['counts'].keys():
             MSE['train'][gene] = 0
             MSE['test'][gene] = 0
@@ -114,8 +117,8 @@ class BBSR_TFA_CV_Workflow(WorkflowBase):
             # plt.close()
         import pdb; pdb.set_trace()
         for gene in total_test_error[0].keys():
-            if MSE['test'][gene] > MSE['train'][gene]:
-                print ' test error higher than train for gene {}'.format(gene)
+            if MSE['test'][gene] < MSE['train'][gene]:
+                print ' test error smaller than train for gene {}'.format(gene)
                 import pdb; pdb.set_trace()
 
         

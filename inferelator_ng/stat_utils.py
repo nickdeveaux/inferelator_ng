@@ -56,6 +56,13 @@ def compute_error(X, Y, thresholded_matrix, held_out_X, held_out_Y):
             n = len(held_out_Y_normalized.loc[gene_name,:])
             test_error[gene_name] = np.sum((ols.predict(held_out_nonzero_X_normalized) - held_out_Y_normalized.loc[gene_name,:]) ** 2) 
             test_error['counts'][gene_name] = n
+        else:
+            # predicted ols solution is mean of Y, i.e. Y_mu
+            train_error[gene_name] = np.sum(Y_normalized ** 2) 
+            train_error['counts'][gene_name] = n
+            test_error[gene_name] = np.sum(held_out_Y_normalized ** 2)
+            test_error['counts'][gene_name] = n
+            
     return (train_error, test_error)
 
 def plot_tf(gene, x, y, fittedvalues, tfs, plot_type = 'train'):
