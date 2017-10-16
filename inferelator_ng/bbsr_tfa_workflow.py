@@ -35,6 +35,16 @@ class BBSR_TFA_CV_Workflow(WorkflowBase):
                 blocks['steady_state'].append(row['condName'])
         return blocks
 
+    def steady_state_replicates_dictionary(self, steady_state_indices):
+        steady_state_dict = {}
+        for x in steady_state_indices:
+            prefix = x.split('_')[0]
+            if prefix in steady_state_dict.keys():
+                steady_state_dict[prefix].append(x)
+            else:
+                steady_state_dict[prefix] = [x]
+        return steady_state_dict
+
     def run(self):
         """
         Execute workflow, after all configuration.
@@ -52,17 +62,20 @@ class BBSR_TFA_CV_Workflow(WorkflowBase):
         self.archived_half_tau_response = self.half_tau_response 
         full_activity = self.compute_activity()
         blocks = self.split_time_series_into_blocks()
-        steady_state_indices = blocks.pop('steady_state')
+        steady_state_dict = self.steady_state_replicates_dictionary(blocks.pop('steady_state'))
+        steady_state_prefixes = list(steady_state_dict.keys())
         self.num_folds = len(blocks)
 
         # Set up a K-fold partition of the steady-state samples, i.e. the expression columns
-        random.shuffle(steady_state_indices)
-        partitioned_fold_indices = self.partition(steady_state_indices, self.num_folds)
+        random.shuffle(steady_state_prefixes)
+        partitioned_steady_state_prefixes = self.partition(steady_state_prefixes, self.num_folds)
 
         total_test_error = {}
         total_train_error = {}
         for fold in range(self.num_folds):
-            excluded_samples = partitioned_fold_indices[fold] + blocks[blocks.keys()[fold]]
+            # flat_list = [item for sublist in l for item in sublist]
+            excluded_steady_state_samples = [x for k in partitioned_steady_state_prefixes[fold] for x in steady_state_dict[k]]
+            excluded_samples = excluded_steady_state_samples + blocks[blocks.keys()[fold]]
             self.design = stat_utils.filter_out(self.archived_design, excluded_samples)
             self.response = stat_utils.filter_out(self.archived_response, excluded_samples)
             self.half_tau_response  = stat_utils.filter_out(self.archived_half_tau_response, excluded_samples)
