@@ -56,7 +56,8 @@ class WorkflowBase(object):
         if self.meta_data is None:
             self.meta_data = self.create_default_meta_data(self.expression_matrix)
         self.priors_data = self.input_dataframe(self.priors_file)
-        self.gold_standard = self.input_dataframe(self.gold_standard_file)
+        if os.path.isfile(self.input_path(self.gold_standard_file)):
+            self.gold_standard = self.input_dataframe(self.gold_standard_file)
 
     def input_path(self, filename):
         return os.path.abspath(os.path.join(self.input_dir, filename))
