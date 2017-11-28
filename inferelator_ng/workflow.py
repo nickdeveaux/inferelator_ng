@@ -120,6 +120,8 @@ class WorkflowBase(object):
         Generate sequence of bootstrap parameter objects for run.
         """
         col_range = range(self.response.shape[1])
+        random_choice = np.random.choice(col_range)
+        print('random choice of bootstrap: {}'.format(random_choice))
         return [[np.random.choice(col_range) for x in col_range] for y in range(self.num_bootstraps)]
 
 
