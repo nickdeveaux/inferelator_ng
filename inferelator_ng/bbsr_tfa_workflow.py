@@ -64,6 +64,8 @@ class BBSR_TFA_Workflow(WorkflowBase):
         print('Computing Transcription Factor Activity ... ')
         TFA_calculator = TFA(self.priors_data, self.design, self.half_tau_response)
         self.activity = TFA_calculator.compute_transcription_factor_activity()
+        utils.print_md5(self.activity.to_string(), 'activity')
+
 
     def emit_results(self, betas, rescaled_betas, gold_standard, priors):
         """
