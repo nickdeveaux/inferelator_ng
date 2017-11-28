@@ -19,7 +19,7 @@ from . import utils
 # --execcmd).
 kvs = KVSClient()
 # Find out which process we are (assumes running under SLURM).
-rank = int(os.environ['SLURM_PROCID'])
+rank = 0 # int(os.environ['SLURM_PROCID'])
 
 class BBSR_TFA_Workflow(WorkflowBase):
 
