@@ -7,12 +7,15 @@ from scipy import special
 import multiprocessing
 from functools import partial
 import os, sys
+import md5
 
 # Wrapper function for BBSRforOneGene that's called in BBSR
 gx, gy, gpp, gwm, gns = None, None, None, None, None
 def BBSRforOneGeneWrapper(ind): return BBSRforOneGene(ind, gx, gy, gpp, gwm, gns)
 
 def BBSR(X, Y, clr_mat, nS, no_pr_val, weights_mat, prior_mat, kvs, rank, ownCheck):
+    
+    m = md5.new()
     G = Y.shape[0] # number of genes
     genes = Y.index.values.tolist()
     K = X.shape[0]  # max number of possible predictors (number of TFs)
@@ -88,7 +91,10 @@ def BBSRforOneGene(ind, X, Y, pp, weights_mat, nS):
 
     if sum(pp_i) == 0:
         return dict(ind=ind,pp=np.repeat(True, len(pp_i)).tolist(),betas=0, betas_resc=0)
-
+    m = md5.new()
+    m.update(X.to_string())
+    print('X matrix at index {}'.format(ind))
+    print(m.hexdigest())
     # create BestSubsetRegression input
     y = Y.ix[ind,:][:, np.newaxis]
     x = X.ix[pp_i_index,:].transpose().values # converted to numpy array
@@ -102,8 +108,11 @@ def BBSRforOneGene(ind, X, Y, pp, weights_mat, nS):
     pp_i_index = [l for l, j in enumerate(pp_i) if j]
     x = X.ix[pp_i_index,:].transpose().values # converted to numpy array
     g = np.matrix(weights_mat.ix[ind,pp_i_index],dtype=np.float)
-
     betas = BestSubsetRegression(y, x, g)
+    m = md5.new()
+    m.update(betas)
+    print('betas at index {}'.format(ind))
+    print(m.hexdigest())
     betas_resc = PredictErrorReduction(y, x, betas)
 
     return (dict(ind=ind, pp=pp_i, betas=betas, betas_resc=betas_resc))
