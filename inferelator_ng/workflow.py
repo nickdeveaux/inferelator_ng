@@ -14,7 +14,6 @@ import numpy as np
 import os
 import random
 import pandas as pd
-import md5
 
 class WorkflowBase(object):
 
@@ -92,18 +91,18 @@ class WorkflowBase(object):
         """
         self.filter_expression_and_priors()
         print('Creating design and response matrix ... ')
-        utils.print_md5(self.expression_matrix, 'expression_matrix')
+        utils.print_md5(self.expression_matrix.to_string(), 'expression_matrix')
         self.design_response_driver.delTmin = self.delTmin
         self.design_response_driver.delTmax = self.delTmax
         self.design_response_driver.tau = self.tau
         (self.design, self.response) = self.design_response_driver.run(self.expression_matrix, self.meta_data)
-        utils.print_md5(self.design, 'design')
-        utils.print_md5(self.response, 'response')
+        utils.print_md5(self.design.to_string(), 'design')
+        utils.print_md5(self.response.to_string(), 'response')
         # compute half_tau_response
         print('Setting up TFA specific response matrix ... ')
         self.design_response_driver.tau = self.tau / 2
         (self.design, self.half_tau_response) = self.design_response_driver.run(self.expression_matrix, self.meta_data)
-        utils.print_md5(self.half_tau_response, 'half_tau_response')
+        utils.print_md5(self.half_tau_response.to_string(), 'half_tau_response')
 
     def filter_expression_and_priors(self):
         """

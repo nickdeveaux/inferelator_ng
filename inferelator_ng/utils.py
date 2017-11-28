@@ -8,6 +8,8 @@ from . import condition
 from . import time_series
 import subprocess
 import numpy as np
+import md5
+
 
 my_dir = os.path.dirname(__file__)
 
