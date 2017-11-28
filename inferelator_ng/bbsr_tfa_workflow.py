@@ -45,9 +45,11 @@ class BBSR_TFA_Workflow(WorkflowBase):
             print('Calculating MI, Background MI, and CLR Matrix')
             if 0 == rank:
                 (self.clr_matrix, self.mi_matrix) = self.mi_clr_driver.run(X, Y)
-                kvs.put('mi %d'%idx, (self.clr_matrix, self.mi_matrix))
+                kvs.put('clr %d'%idx, self.clr_matrix)
+                kvs.put('mi %d'%idx, self.mi_matrix)
             else:
-                (self.clr_matrix, self.mi_matrix) = kvs.view('mi %d'%idx)
+                self.clr_matrix = kvs.view('clr %d'%idx)
+                self.mi_matrix = kvs.view('mi %d'%idx)
             print('Calculating betas using BBSR')
             ownCheck = utils.own(kvs, rank, chunk=25, reset=idx!=0)
             current_betas,current_rescaled_betas = self.regression_driver.run(X, Y, self.clr_matrix, self.priors_data,kvs,rank,ownCheck)
