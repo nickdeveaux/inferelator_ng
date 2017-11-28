@@ -11,6 +11,11 @@ import numpy as np
 
 my_dir = os.path.dirname(__file__)
 
+def print_md5(x, name, index = 0):
+    m = md5.new()
+    m.update(x)
+    print('{} at index {}'.format(name, index))
+    print(m.hexdigest())
 
 def convert_to_R_df(df):
     """
