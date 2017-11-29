@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+from scipy import linalg
 import warnings
 
 class TFA:
@@ -66,7 +67,7 @@ class TFA:
 
         # Set the activity of non-zero tfs to the pseudoinverse of the prior matrix times the expression
         if non_zero_tfs:
-            activity.loc[non_zero_tfs,:] = np.matrix(np.linalg.pinv(self.prior[non_zero_tfs])) * np.matrix(self.expression_matrix_halftau)
+            activity.loc[non_zero_tfs,:] = np.matrix(linalg.pinv(self.prior[non_zero_tfs], rcond=1e-45)) * np.matrix(self.expression_matrix_halftau)
 
         return activity
 
