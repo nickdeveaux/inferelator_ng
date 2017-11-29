@@ -67,7 +67,11 @@ class TFA:
 
         # Set the activity of non-zero tfs to the pseudoinverse of the prior matrix times the expression
         if non_zero_tfs:
-            activity.loc[non_zero_tfs,:] = np.matrix(linalg.pinv(self.prior[non_zero_tfs], rcond=1e-45)) * np.matrix(self.expression_matrix_halftau)
+            print 'rank of matrix: {}'.format(np.linalg.matrix_rank(self.prior[non_zero_tfs]))
+            print 'shape of matrix: {}'.format(self.prior[non_zero_tfs].shape)
+            p_inv = linalg.pinv2(self.prior[non_zero_tfs], rcond=1e-45)
+            np.savetxt('p_inv2.txt', p_inv)
+            activity.loc[non_zero_tfs,:] = np.matrix(p_inv_scratch) * np.matrix(self.expression_matrix_halftau)
 
         return activity
 
