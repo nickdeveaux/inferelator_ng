@@ -6,6 +6,7 @@ workflow.input_dir = 'data/dmel'
 workflow.num_bootstraps = 100
 workflow.delTmax = 110
 workflow.delTmin = 0
+workflow.tf_names_file = 'tf_names_all_in_fly_factor.tsv'
 workflow.tau = 45
 workflow.random_seed = 1
 workflow.priors_file = 'prior_with_tfs_filtered_by_one_percent_expression.tsv'

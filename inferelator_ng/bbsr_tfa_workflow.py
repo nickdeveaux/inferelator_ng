@@ -61,9 +61,14 @@ class BBSR_TFA_Workflow(WorkflowBase):
         """
         Compute Transcription Factor Activity
         """
-        print('Computing Transcription Factor Activity ... ')
-        TFA_calculator = TFA(self.priors_data, self.design, self.half_tau_response)
-        self.activity = TFA_calculator.compute_transcription_factor_activity()
+        print('Computing Transcription Factor Activity from expression')
+        expression_matrix = self.design
+        tfs = list(set(self.tf_names).intersection(self.expression_matrix.index))
+        activity = pd.DataFrame(self.expression_matrix.loc[tfs,:].values,
+                index = tfs,
+                columns = expression_matrix.columns)
+        print('Found Transcription Factor Activity matrix of shape: {}'.format(activity.shape))
+        self.activity = activity
 
     def emit_results(self, betas, rescaled_betas, gold_standard, priors):
         """
