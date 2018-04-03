@@ -4,7 +4,7 @@ Run BSubtilis Network Inference with TFA BBSR.
 
 import numpy as np
 import os
-from workflow import WorkflowBase
+from . import workflow
 import design_response_translation #added python design_response
 from tfa import TFA
 from results_processor import ResultsProcessor
@@ -22,7 +22,7 @@ kvs = KVSClient()
 # Find out which process we are (assumes running under SLURM).
 rank = int(os.environ['SLURM_PROCID'])
 
-class BBSR_TFA_Workflow(WorkflowBase):
+class BBSR_TFA_Workflow(workflow.WorkflowBase):
 
     def run(self):
         """
@@ -62,14 +62,9 @@ class BBSR_TFA_Workflow(WorkflowBase):
         """
         Compute Transcription Factor Activity
         """
-        print('Computing Transcription Factor Activity from expression')
-        expression_matrix = self.design
-        tfs = list(set(self.tf_names).intersection(self.expression_matrix.index))
-        activity = pd.DataFrame(self.expression_matrix.loc[tfs,:].values,
-                index = tfs,
-                columns = expression_matrix.columns)
-        print('Found Transcription Factor Activity matrix of shape: {}'.format(activity.shape))
-        self.activity = activity
+        print('Computing Transcription Factor Activity ... ')
+        TFA_calculator = TFA(self.priors_data, self.design, self.half_tau_response)
+        self.activity = TFA_calculator.compute_transcription_factor_activity()
 
     def emit_results(self, betas, rescaled_betas, gold_standard, priors):
         """
