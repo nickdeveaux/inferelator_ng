@@ -10,10 +10,10 @@ class BBSR_TFA_Workflow_with_Prior_GS_split(BBSR_TFA_Workflow, PriorGoldStandard
 workflow = BBSR_TFA_Workflow_with_Prior_GS_split()
 # Common configuration parameters
 workflow.input_dir = 'data/dmel_TF_filtered_experiment/'
-workflow.num_bootstraps = 20
+workflow.num_bootstraps = 30 
 workflow.delTmax = 110
 workflow.delTmin = 0
-workflow.expression_matrix_file = 'combined_wtJ_and_wtF_TF_cells_smoothed_separately_with_k_3.tsv'
+workflow.expression_matrix_file = 'combined_wtJ_and_wtF_TF_cells_smoothed_separately_with_k_5.tsv'
 workflow.tf_names_file = 'Marbach_tf_names.tsv'
 workflow.tau = 45
 workflow.random_seed = 1
