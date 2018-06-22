@@ -5,6 +5,7 @@ Run BSubtilis Network Inference with TFA BBSR.
 import numpy as np
 import os
 from . import workflow
+import sys
 import design_response_translation #added python design_response
 from tfa import TFA
 from results_processor import ResultsProcessor
@@ -41,14 +42,17 @@ class BBSR_TFA_Workflow(workflow.WorkflowBase):
 
         for idx, bootstrap in enumerate(self.get_bootstraps()):
             print('Bootstrap {} of {}'.format((idx + 1), self.num_bootstraps))
+
             X = self.activity.ix[:, bootstrap]
             Y = self.response.ix[:, bootstrap]
             print('Calculating MI, Background MI, and CLR Matrix')
+            (self.clr_matrix, self.mi_matrix) = self.mi_clr_driver.run(X, Y)
+            # Force stdout to flush so that the output is readable from all workers
+            sys.stdout.flush()
             if 0 == rank:
-                (self.clr_matrix, self.mi_matrix) = self.mi_clr_driver.run(X, Y)
-                kvs.put('mi %d'%idx, (self.clr_matrix, self.mi_matrix))
+                kvs.put('bootstrap %d'%idx, 'This is how we stop workers from moving ahead on a new bootstrap')
             else:
-                (self.clr_matrix, self.mi_matrix) = kvs.view('mi %d'%idx)
+                kvs.view('bootstrap %d'%idx)
             print('Calculating betas using BBSR')
             ownCheck = utils.ownCheck(kvs, rank, chunk=25)
             current_betas,current_rescaled_betas = self.regression_driver.run(X, Y, self.clr_matrix, self.priors_data,kvs,rank, ownCheck)
