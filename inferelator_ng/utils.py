@@ -31,7 +31,10 @@ def call_R(driver_path):
     """
     if os.name == "posix":
         command = "R -f " + driver_path
-        return subprocess.check_output(command, shell=True, stderr=subprocess.STDOUT)
+        try:
+            return subprocess.check_output(command, shell=True, stderr=subprocess.STDOUT)
+        except subprocess.CalledProcessError as e:
+            print(e.output)
     else:
         theproc = subprocess.Popen(['R', '-f', driver_path])
         return theproc.communicate()
