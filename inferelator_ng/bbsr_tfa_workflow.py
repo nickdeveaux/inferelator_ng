@@ -47,7 +47,7 @@ class BBSR_TFA_Workflow(workflow.WorkflowBase):
             X = self.activity.ix[:, bootstrap]
             Y = self.response.ix[:, bootstrap]
             print('Calculating MI, Background MI, and CLR Matrix')
-            (self.clr_matrix, self.mi_matrix) = self.mi_clr_driver.run(bootstrap, X, Y)
+            (self.clr_matrix, self.mi_matrix) = self.mi_clr_driver.run(idx, X, Y)
             # Force stdout to flush so that the output is readable from all workers
             sys.stdout.flush()
             if 0 == rank:
