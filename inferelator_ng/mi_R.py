@@ -56,6 +56,7 @@ class MIDriver(utils.RDriver):
     """
 
     target_directory = "/tmp"
+    logging_dir = '/mnt/ceph/users/cskokgibbs'
     x_file = "x.csv"
     y_file = "y.csv"
     script_file = "run_mi.R"
@@ -64,13 +65,17 @@ class MIDriver(utils.RDriver):
     bins = 10
     cores = 10
 
-    def run(self, x_data_frame, y_dataframe):
+    def run(self, bootstrap, x_data_frame, y_dataframe):
         x = utils.convert_to_R_df(x_data_frame)
         y = utils.convert_to_R_df(y_dataframe)
         x_path = self.path(self.x_file)
+        logging_x_path = os.path.join(logging_dir, str(bootstrap) + x_file)
+        logging_y_path = os.path.join(logging_dir, str(bootstrap) + y_file)
         y_path = self.path(self.y_file)
         x.to_csv(x_path)
         y.to_csv(y_path)
+        x.to_csv(logging_x_path)
+        y.to_csv(logging_y_path)
         (driver_path, matrix_path, mi_path) = save_mi_driver(
             to_filename=self.path(self.script_file),
             x_file=x_path,

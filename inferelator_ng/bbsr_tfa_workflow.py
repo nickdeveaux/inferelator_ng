@@ -6,15 +6,16 @@ import numpy as np
 import os
 from . import workflow
 import sys
-import design_response_translation #added python design_response
-from tfa import TFA
-from results_processor import ResultsProcessor
-import mi_R
-import bbsr_python
+from inferelator_ng.workflow import WorkflowBase
+import inferelator_ng.design_response_translation as design_response_translation
+from inferelator_ng.tfa import TFA
+from inferelator_ng.results_processor import ResultsProcessor
+import inferelator_ng.mi_R as mi_R
+import inferelator_ng.bbsr_python as bbsr_python
 import datetime
 from kvsstcp.kvsclient import KVSClient
 import pandas as pd
-from . import utils
+from inferelator_ng import utils
 
 # Connect to the key value store service (its location is found via an
 # environment variable that is set when this is started vid kvsstcp.py
@@ -46,7 +47,7 @@ class BBSR_TFA_Workflow(workflow.WorkflowBase):
             X = self.activity.ix[:, bootstrap]
             Y = self.response.ix[:, bootstrap]
             print('Calculating MI, Background MI, and CLR Matrix')
-            (self.clr_matrix, self.mi_matrix) = self.mi_clr_driver.run(X, Y)
+            (self.clr_matrix, self.mi_matrix) = self.mi_clr_driver.run(bootstrap, X, Y)
             # Force stdout to flush so that the output is readable from all workers
             sys.stdout.flush()
             if 0 == rank:
