@@ -48,7 +48,7 @@ class BBSR_TFA_Workflow(workflow.WorkflowBase):
             Y = self.response.ix[:, bootstrap]
             print('Calculating MI, Background MI, and CLR Matrix')
             if 0 == rank:
-                (self.clr_matrix, self.mi_matrix) = self.mi_clr_driver.run(X, Y)
+                (self.clr_matrix, self.mi_matrix) = self.mi_clr_driver.run(idx, X, Y)
                 kvs.put('mi %d'%idx, (self.clr_matrix, self.mi_matrix))
             else:
                 (self.clr_matrix, self.mi_matrix) = kvs.view('mi %d'%idx)
