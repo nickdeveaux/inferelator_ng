@@ -10,5 +10,6 @@ workflow.expression_matrix_file = 'expression.tsv'
 workflow.tau = 45
 workflow.random_seed = 1
 workflow.priors_file = 'prior_with_tfs_filtered_by_one_percent_expression.tsv'
+workflow.tf_names_file = 'Marbach_and_fly_factor_survey_TFs.txt'
 workflow.run() 
 
