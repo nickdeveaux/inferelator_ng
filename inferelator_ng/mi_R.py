@@ -5,7 +5,9 @@ Compute mutual information by calling R subprocess.
 import os
 import subprocess
 import pandas as pd
+import tempfile
 from . import utils
+
 
 MI_MODULE = utils.local_path("R_code", "mi_and_clr.R")
 
@@ -55,8 +57,8 @@ class MIDriver(utils.RDriver):
     compute mutual information and CLR.
     """
 
-    target_directory = "/tmp"
-    logging_dir = '/mnt/ceph/users/cskokgibbs'
+    target_directory = tempfile.mkdtemp('_bbsr_td')
+    logging_dir = tempfile.mkdtemp('_log', '/mnt/ceph/users/cskokgibbs/bbsr_')
     x_file = "x.csv"
     y_file = "y.csv"
     script_file = "run_mi.R"
@@ -69,8 +71,10 @@ class MIDriver(utils.RDriver):
         x = utils.convert_to_R_df(x_data_frame)
         y = utils.convert_to_R_df(y_dataframe)
         x_path = self.path(self.x_file)
-        logging_x_path = os.path.join(self.logging_dir, str(bootstrap) + self.x_file)
-        logging_y_path = os.path.join(self.logging_dir, str(bootstrap) + self.y_file)
+        output_dir = os.path.join(self.logging_dir, datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S'))
+        os.makedirs(output_dir)
+        logging_x_path = os.path.join(output_dir, str(bootstrap) + self.x_file)
+        logging_y_path = os.path.join(output_dir, str(bootstrap) + self.y_file)
         y_path = self.path(self.y_file)
         x.to_csv(x_path)
         y.to_csv(y_path)
